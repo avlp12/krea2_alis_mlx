@@ -31,11 +31,9 @@ def main():
 
     here = os.path.dirname(os.path.abspath(__file__))
     precision, tpath = args.precision, args.transformer
-    if precision is None:  # local weights if present, else fetch the 8-bit build from HF
-        precision, tpath = resolve_weights(here, download=True)
-    elif tpath is None and precision != "bf16":
-        fname = "transformer_8bit.safetensors" if precision == "8bit" else "transformer_mixed_4_8.safetensors"
-        tpath = os.path.join(here, fname)
+    if precision != "bf16" and tpath is None:
+        # local file if present, else download the chosen build (8bit / mixed-4-8; default 8bit)
+        precision, tpath = resolve_weights(here, precision=precision, download=True)
 
     pipe = Krea2Pipeline(transformer_path=tpath, precision=precision)
     images = pipe.generate(args.prompt, width=args.width, height=args.height,

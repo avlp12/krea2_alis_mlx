@@ -19,22 +19,37 @@ from .text_encoder import Qwen3VLConditioner
 from .transformer import Krea2Config, SingleStreamDiT
 
 BASE_REPO = "krea/Krea-2-Turbo"
-DEFAULT_WEIGHTS_REPO = "avlp12/Krea-2-Turbo-Alis-MLX-8bit"
-_WEIGHTS = {"8bit": "transformer_8bit.safetensors", "mixed-4-8": "transformer_mixed_4_8.safetensors"}
+# quantized builds the apps can use: precision -> (HF repo, transformer filename)
+BUILDS = {
+    "8bit": ("avlp12/Krea-2-Turbo-Alis-MLX-8bit", "transformer_8bit.safetensors"),
+    "mixed-4-8": ("avlp12/Krea-2-Turbo-Alis-MLX-mixed-4-8", "transformer_mixed_4_8.safetensors"),
+}
 
 
-def resolve_weights(folder: str = ".", download: bool = True):
-    """Find the transformer weights to use: a local file in `folder` if present,
-    otherwise (download=True) fetch the 8-bit build from HF. Returns (precision, path)."""
-    for prec, fname in _WEIGHTS.items():
-        p = os.path.join(folder, fname)
-        if os.path.exists(p):
-            return prec, p
-    if not download:
-        return "8bit", None  # nothing local yet; the 8-bit build will be fetched on load
-    from huggingface_hub import hf_hub_download
+def resolve_weights(folder: str = ".", precision: str | None = None, download: bool = True):
+    """Resolve the transformer weights to use. Returns (precision, path).
 
-    return "8bit", hf_hub_download(DEFAULT_WEIGHTS_REPO, _WEIGHTS["8bit"])
+    - precision given ('8bit'|'mixed-4-8'): use the local file if present, else (download)
+      fetch that build from its HF repo.
+    - precision None (auto): use whichever build's file is already in `folder`; if none,
+      default to 8-bit (downloaded on load).
+    """
+    def _resolve(prec):
+        repo, fname = BUILDS[prec]
+        local = os.path.join(folder, fname)
+        if os.path.exists(local):
+            return prec, local
+        if not download:
+            return prec, None
+        from huggingface_hub import hf_hub_download
+        return prec, hf_hub_download(repo, fname)
+
+    if precision in BUILDS:
+        return _resolve(precision)
+    for prec, (_, fname) in BUILDS.items():  # auto: prefer a locally-present build
+        if os.path.exists(os.path.join(folder, fname)):
+            return prec, os.path.join(folder, fname)
+    return _resolve("8bit")
 
 
 def _base_dir() -> str:

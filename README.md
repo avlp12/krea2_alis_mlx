@@ -44,9 +44,9 @@ python generate.py "a red fox in the snow, photorealistic" --out fox.png
 
 Useful flags: `--width/--height 512|768|1024`, `--steps 8`, `--seed 0`, `--num-images 2`.
 
-> **Tip:** prefer the smaller, near-identical build? `pip install huggingface_hub` then
-> `hf download avlp12/Krea-2-Turbo-Alis-MLX-mixed-4-8 --local-dir .` before running — the
-> apps auto-detect whichever weights are in the folder.
+> **Choose your build:** in the web UI, pick **8-bit** or **mixed-4/8** from the **Model**
+> dropdown — it downloads the chosen one on first use. On the CLI, add `--precision mixed-4-8`
+> (or `8bit`). Default is 8-bit.
 
 ---
 

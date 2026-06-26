@@ -17,33 +17,40 @@ from krea2.pipeline import Krea2Pipeline, resolve_weights
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SIZES = ["512", "768", "1024"]
+# selectable builds (label shown in the UI -> precision)
+MODELS = [("8-bit · best quality (14 GB)", "8bit"), ("mixed-4/8 · smaller (9.8 GB)", "mixed-4-8")]
 _PIPE = None
+_PIPE_PREC = None
 
 
-def _pipe():
-    global _PIPE
-    if _PIPE is None:
-        prec, path = resolve_weights(HERE, download=True)  # local file, else fetch 8-bit from HF
+def _pipe(precision):
+    """Return a pipeline for the chosen build, (re)loading it if the build changed.
+    Downloads the build from HF on first use if it isn't already local."""
+    global _PIPE, _PIPE_PREC
+    if _PIPE is None or _PIPE_PREC != precision:
+        prec, path = resolve_weights(HERE, precision=precision, download=True)
         _PIPE = Krea2Pipeline(path, precision=prec, base_dir=os.environ.get("KREA2_BASE_DIR"))
-        _PIPE._precision = prec
+        _PIPE_PREC = prec
     return _PIPE
 
 
-def generate(prompt, size, steps, seed, num_images):
+def generate(prompt, model, size, steps, seed, num_images):
     if not prompt or not prompt.strip():
         raise gr.Error("Enter a prompt.")
     s = int(size)
-    return _pipe().generate(prompt.strip(), width=s, height=s, steps=int(steps),
-                            seed=int(seed), num_images=int(num_images))
+    return _pipe(model).generate(prompt.strip(), width=s, height=s, steps=int(steps),
+                                 seed=int(seed), num_images=int(num_images))
 
 
 with gr.Blocks(title="Krea 2 Turbo · Alis MLX") as demo:
-    prec, _ = resolve_weights(HERE, download=False)
-    gr.Markdown(f"# Krea&nbsp;2&nbsp;Turbo · Alis MLX\n"
-                f"Local text-to-image on Apple silicon · **{prec}** build · 8-step Turbo (no CFG).")
+    default_prec, _ = resolve_weights(HERE, download=False)  # the build already in this folder, if any
+    gr.Markdown("# Krea&nbsp;2&nbsp;Turbo · Alis MLX\n"
+                "Local text-to-image on Apple silicon · 8-step Turbo (no CFG). "
+                "Switching **Model** downloads that build on first use.")
     with gr.Row():
         with gr.Column(scale=1):
             prompt = gr.Textbox(label="Prompt", lines=3, value="a fox in the snow")
+            model = gr.Dropdown(MODELS, value=default_prec, label="Model")
             with gr.Row():
                 size = gr.Dropdown(SIZES, value="1024", label="Size")
                 steps = gr.Slider(4, 12, value=8, step=1, label="Steps")
@@ -59,7 +66,7 @@ with gr.Blocks(title="Krea 2 Turbo · Alis MLX") as demo:
             )
         with gr.Column(scale=1):
             gallery = gr.Gallery(label="Output", columns=2, height=560, object_fit="contain")
-    btn.click(generate, [prompt, size, steps, seed, num_images], gallery)
+    btn.click(generate, [prompt, model, size, steps, seed, num_images], gallery)
 
 
 if __name__ == "__main__":
