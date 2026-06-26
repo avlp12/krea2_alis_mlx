@@ -1,0 +1,20 @@
+Krea 2 is licensed under the Krea 2 Community License Agreement.
+For more information, visit https://krea.ai/krea-2-licensing.
+
+------------------------------------------------------------------------
+This repository contains a MODIFIED DERIVATIVE of the Krea Model
+(krea/Krea-2-Turbo). Modifications by avlp12 (ALISVOLATPROPRIIS):
+
+  - Re-implementation of the Krea 2 Turbo transformer, Qwen3-VL-4B text
+    encoder, and flow-matching sampler for Apple MLX.
+  - 8-bit (group-size 64) quantization of the transformer's 28
+    attention + SwiGLU blocks (sensitivity-graded; all other paths bf16).
+
+This is an independent, unofficial port. It is NOT an official Krea
+product and is NOT endorsed by or affiliated with Krea.ai, Inc.
+
+A full copy of the Krea 2 Community License Agreement is included in the
+LICENSE file in this repository. Your use of these weights is governed by
+that agreement (including, e.g., the < $1,000,000 USD annual-revenue
+threshold for Commercial Use and the content-filtering requirements).
+------------------------------------------------------------------------

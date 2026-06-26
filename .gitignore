@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+# weights / outputs / reference (not tracked here)
+weights/
+krea-2-official/
+release/
+release_mixed/
+*.safetensors
+out*.png
+*.out

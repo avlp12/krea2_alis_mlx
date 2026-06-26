@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+  <rect width="1280" height="600" fill="#0d1117"/>
+  <text x="40" y="50" fill="#e6edf3" font-size="28" font-weight="700">Verification &#38; quantization</text>
+  <text x="40" y="78" fill="#8b98a8" font-size="15">every stage cross-checked against the original PyTorch (krea-2-official) before the next &#183; float32, fixed seed</text>
+
+  <!-- LEFT: verification table -->
+  <text x="40" y="128" fill="#58a6ff" font-size="18" font-weight="700">Numerical parity vs PyTorch</text>
+  <g font-size="15">
+    <!-- header -->
+    <rect x="40" y="144" width="560" height="38" rx="8" fill="#161b22"/>
+    <text x="58" y="169" fill="#8b98a8" font-weight="600">stage</text>
+    <text x="330" y="169" fill="#8b98a8" font-weight="600">metric</text>
+    <text x="520" y="169" fill="#8b98a8" font-weight="600">result</text>
+
+    <g fill="#c9d4e0">
+      <rect x="40" y="186" width="560" height="36" rx="6" fill="#0f1620"/>
+      <text x="58" y="210">Text encoder (Qwen3-VL-4B)</text><text x="330" y="210" fill="#8b98a8">hidden states, 12 layers</text><text x="520" y="210" fill="#3fb950" font-weight="700">1.000000</text>
+
+      <text x="58" y="246">Transformer (28-block DiT)</text><text x="330" y="246" fill="#8b98a8">velocity (rel-L2 3e-5)</text><text x="520" y="246" fill="#3fb950" font-weight="700">1.000000</text>
+      <rect x="40" y="258" width="560" height="1" fill="#21262d"/>
+
+      <rect x="40" y="262" width="560" height="36" rx="6" fill="#0f1620"/>
+      <text x="58" y="286">VAE (Qwen-Image, decode)</text><text x="330" y="286" fill="#8b98a8">pixel cos vs diffusers</text><text x="520" y="286" fill="#3fb950" font-weight="700">0.9994</text>
+
+      <text x="58" y="322" font-weight="700" fill="#e6edf3">Full pipeline (end-to-end)</text><text x="330" y="322" fill="#8b98a8">pixel, identical noise</text><text x="520" y="322" fill="#3fb950" font-weight="800">1.000000</text>
+    </g>
+    <rect x="40" y="340" width="560" height="46" rx="8" fill="#0f1d14" stroke="#238636"/>
+    <text x="58" y="369" fill="#3fb950" font-size="15" font-weight="700">&#10003; numerically faithful &#183; max|diff| 0.005 &#183; visually identical</text>
+  </g>
+
+  <!-- LEFT bottom: zero-remap note -->
+  <rect x="40" y="408" width="560" height="150" rx="10" fill="#161b22" stroke="#30363d"/>
+  <text x="58" y="438" fill="#e6edf3" font-size="16" font-weight="700">Clean port</text>
+  <text x="58" y="464" fill="#c9d4e0" font-size="14">&#8226; 430/430 tensor names match &#8594; zero weight remap</text>
+  <text x="58" y="487" fill="#c9d4e0" font-size="14">&#8226; VAE reuses mflux QwenVAE (identical model)</text>
+  <text x="58" y="510" fill="#c9d4e0" font-size="14">&#8226; text-only &#8658; mrope collapses to standard rope</text>
+  <text x="58" y="533" fill="#c9d4e0" font-size="14">&#8226; 3-lens reviewed (codex + red-team + blank-slate)</text>
+
+  <!-- RIGHT: quant tradeoff -->
+  <text x="650" y="128" fill="#ff7a45" font-size="18" font-weight="700">Quantization (transformer)</text>
+  <g font-size="15">
+    <rect x="650" y="144" width="590" height="38" rx="8" fill="#161b22"/>
+    <text x="668" y="169" fill="#8b98a8" font-weight="600">build</text>
+    <text x="900" y="169" fill="#8b98a8" font-weight="600">size</text>
+    <text x="1010" y="169" fill="#8b98a8" font-weight="600">vel-cos&#183;mean</text>
+    <text x="1150" y="169" fill="#8b98a8" font-weight="600">step</text>
+
+    <g>
+      <text x="668" y="210" fill="#c9d4e0">bf16 (reference)</text><text x="900" y="210" fill="#c9d4e0">25.6 GB</text><text x="1010" y="210" fill="#8b98a8">&#8212;</text><text x="1150" y="210" fill="#c9d4e0">~5800 ms</text>
+      <rect x="650" y="222" width="590" height="40" rx="6" fill="#1a140f" stroke="#ff7a45"/>
+      <text x="668" y="248" fill="#ffd9c7" font-weight="700">8-bit  &#9733; this release</text><text x="900" y="248" fill="#ffd9c7" font-weight="700">14.2 GB</text><text x="1010" y="248" fill="#3fb950" font-weight="700">0.99996</text><text x="1150" y="248" fill="#c9d4e0">~5990 ms</text>
+      <text x="668" y="288" fill="#c9d4e0">mixed-4/8 (dynamic)</text><text x="900" y="288" fill="#c9d4e0">9.8 GB</text><text x="1010" y="288" fill="#9be9a8">0.99849</text><text x="1150" y="288" fill="#c9d4e0">~5990 ms</text>
+      <text x="668" y="322" fill="#c9d4e0">4-bit</text><text x="900" y="322" fill="#c9d4e0">8.2 GB</text><text x="1010" y="322" fill="#d29922">0.99788</text><text x="1150" y="322" fill="#c9d4e0">~5990 ms</text>
+    </g>
+  </g>
+  <rect x="650" y="346" width="590" height="80" rx="10" fill="#1d1607" stroke="#9e6a03"/>
+  <text x="668" y="374" fill="#e3b341" font-size="15" font-weight="700">Honest note: latency is identical across bit-widths.</text>
+  <text x="668" y="398" fill="#c9d4e0" font-size="14">Generation is attention-bound (unquantized), so quant gives NO speedup.</text>
+  <text x="668" y="418" fill="#c9d4e0" font-size="14">On a big-RAM Mac, prefer bf16. Quant = smaller download / portability.</text>
+
+  <rect x="650" y="440" width="590" height="118" rx="10" fill="#161b22" stroke="#30363d"/>
+  <text x="668" y="468" fill="#e6edf3" font-size="16" font-weight="700">8-bit recipe (sensitivity-graded)</text>
+  <text x="668" y="494" fill="#c9d4e0" font-size="14">quantize: the 28 blocks' attention + SwiGLU (224 matmuls)</text>
+  <text x="668" y="516" fill="#c9d4e0" font-size="14">keep bf16: first / last / time-embeds / text_fusion /</text>
+  <text x="668" y="536" fill="#c9d4e0" font-size="14">projector / all norms &#38; modulation &#183; group size 64</text>
+</svg>

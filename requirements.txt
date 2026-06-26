@@ -1,0 +1,12 @@
+# Inference (text-to-image on Apple silicon)
+mlx>=0.31,<0.32
+mflux>=0.18,<0.19          # reused for the Qwen-Image VAE + weight loaders
+transformers>=5.0          # Qwen3-VL-4B tokenizer / encoder
+huggingface_hub>=0.26
+numpy
+pillow
+gradio>=5                  # only needed for the web UI (app.py)
+
+# Validation harness (optional, see validation/README.md) additionally needs:
+#   torch>=2.8  diffusers  einops  accelerate
+#   and a clone of https://github.com/krea-ai/krea-2 for PyTorch-parity checks

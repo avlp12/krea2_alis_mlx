@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 540" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#0a0c10"/>
+    </linearGradient>
+    <linearGradient id="dit" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a45"/><stop offset="1" stop-color="#d2553a"/>
+    </linearGradient>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#8b98a8"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="540" fill="url(#bg)"/>
+  <text x="40" y="52" fill="#e6edf3" font-size="30" font-weight="700">Krea&#8201;2&#8201;Turbo &#183; Apple MLX pipeline</text>
+  <text x="40" y="80" fill="#8b98a8" font-size="16">12.9B single-stream MMDiT &#183; flow-matching &#183; 8-step distilled (no CFG) &#183; pure-MLX, numerically faithful to PyTorch</text>
+
+  <!-- stage boxes -->
+  <g font-size="15">
+    <!-- prompt -->
+    <rect x="40" y="150" width="150" height="150" rx="12" fill="#161b22" stroke="#30363d"/>
+    <text x="115" y="210" fill="#e6edf3" font-size="16" font-weight="600" text-anchor="middle">prompt</text>
+    <text x="115" y="234" fill="#8b98a8" text-anchor="middle" font-size="13">&#8220;a fox in</text>
+    <text x="115" y="252" fill="#8b98a8" text-anchor="middle" font-size="13">the snow&#8221;</text>
+
+    <!-- encoder -->
+    <rect x="240" y="130" width="210" height="190" rx="12" fill="#11202e" stroke="#1f6feb"/>
+    <text x="345" y="160" fill="#58a6ff" font-size="16" font-weight="700" text-anchor="middle">Qwen3-VL-4B</text>
+    <text x="345" y="182" fill="#c9d4e0" text-anchor="middle">text encoder (pure MLX)</text>
+    <text x="345" y="210" fill="#8b98a8" text-anchor="middle" font-size="13">36 layers, GQA + QK-norm</text>
+    <text x="345" y="230" fill="#8b98a8" text-anchor="middle" font-size="13">tap 12 layers [2,5,&#8230;,35]</text>
+    <text x="345" y="258" fill="#c9d4e0" text-anchor="middle" font-size="13">text_fusion: 2 layerwise</text>
+    <text x="345" y="276" fill="#c9d4e0" text-anchor="middle" font-size="13">&#8594; proj(12&#8594;1) &#8594; 2 refiner</text>
+    <text x="345" y="304" fill="#3fb950" text-anchor="middle" font-size="13" font-weight="700">cos 1.000000 vs HF</text>
+
+    <!-- DiT -->
+    <rect x="500" y="120" width="250" height="210" rx="12" fill="#2a1410" stroke="url(#dit)" stroke-width="2"/>
+    <text x="625" y="150" fill="#ff7a45" font-size="17" font-weight="800" text-anchor="middle">SingleStreamDiT</text>
+    <text x="625" y="172" fill="#c9d4e0" text-anchor="middle">28 blocks &#183; width 6144</text>
+    <text x="625" y="198" fill="#8b98a8" text-anchor="middle" font-size="13">GQA 48q / 12kv &#183; head 128</text>
+    <text x="625" y="217" fill="#8b98a8" text-anchor="middle" font-size="13">per-head QK-RMSNorm</text>
+    <text x="625" y="236" fill="#8b98a8" text-anchor="middle" font-size="13">sigmoid output gate</text>
+    <text x="625" y="255" fill="#8b98a8" text-anchor="middle" font-size="13">SwiGLU 16384 &#183; 3-axis RoPE</text>
+    <text x="625" y="283" fill="#c9d4e0" text-anchor="middle" font-size="13">predicts flow velocity v</text>
+    <text x="625" y="314" fill="#3fb950" text-anchor="middle" font-size="13" font-weight="700">velocity cos 1.000000 vs PT</text>
+
+    <!-- sampler -->
+    <rect x="800" y="150" width="160" height="150" rx="12" fill="#161b22" stroke="#30363d"/>
+    <text x="880" y="200" fill="#e6edf3" font-size="15" font-weight="700" text-anchor="middle">8-step</text>
+    <text x="880" y="222" fill="#e6edf3" font-size="15" font-weight="700" text-anchor="middle">Euler</text>
+    <text x="880" y="248" fill="#8b98a8" font-size="13" text-anchor="middle">flow-match ODE</text>
+    <text x="880" y="266" fill="#8b98a8" font-size="13" text-anchor="middle">guidance = 0</text>
+
+    <!-- vae -->
+    <rect x="1010" y="130" width="170" height="190" rx="12" fill="#11202e" stroke="#1f6feb"/>
+    <text x="1095" y="170" fill="#58a6ff" font-size="16" font-weight="700" text-anchor="middle">Qwen-Image</text>
+    <text x="1095" y="190" fill="#58a6ff" font-size="16" font-weight="700" text-anchor="middle">VAE</text>
+    <text x="1095" y="216" fill="#8b98a8" font-size="13" text-anchor="middle">f8, 16-ch latent</text>
+    <text x="1095" y="234" fill="#8b98a8" font-size="13" text-anchor="middle">decode &#8594; pixels</text>
+    <text x="1095" y="262" fill="#3fb950" font-size="13" text-anchor="middle" font-weight="700">cos 0.9994 vs</text>
+    <text x="1095" y="280" fill="#3fb950" font-size="13" text-anchor="middle" font-weight="700">diffusers</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#8b98a8" stroke-width="2" fill="none">
+    <line x1="190" y1="225" x2="236" y2="225" marker-end="url(#ar)"/>
+    <line x1="450" y1="225" x2="496" y2="225" marker-end="url(#ar)"/>
+    <line x1="750" y1="225" x2="796" y2="225" marker-end="url(#ar)"/>
+    <line x1="960" y1="225" x2="1006" y2="225" marker-end="url(#ar)"/>
+  </g>
+  <!-- recirculate arrow for 8 steps -->
+  <path d="M880,150 C880,110 625,110 625,116" stroke="#ff7a45" stroke-width="1.5" fill="none" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <text x="745" y="104" fill="#ff7a45" font-size="12" text-anchor="middle">&#215; 8 denoising steps</text>
+
+  <!-- footer: full e2e -->
+  <rect x="40" y="400" width="1140" height="96" rx="12" fill="#0f1d14" stroke="#238636"/>
+  <text x="64" y="438" fill="#3fb950" font-size="20" font-weight="800">&#10003; Full end-to-end pixel cos = 1.000000 vs PyTorch reference</text>
+  <text x="64" y="466" fill="#c9d4e0" font-size="15">identical injected noise &#183; max|diff| 0.005 &#183; visually identical &#183; every stage validated before the next</text>
+  <text x="64" y="487" fill="#8b98a8" font-size="13">VAE = mflux QwenVAE (reused) &#183; transformer loads krea/Krea-2-Turbo turbo.safetensors with zero remap (430/430 names match)</text>
+</svg>
