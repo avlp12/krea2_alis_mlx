@@ -15,6 +15,11 @@ original PyTorch** (end-to-end pixel cosine **1.000000**).
 
 > *Independent, unofficial port — not affiliated with or endorsed by Krea.*
 
+> 🎨 **Recommended GUI → [Alis Studio](https://github.com/avlp12/alis-studio).** A companion app that
+> runs Krea 2 Turbo — and other image models you plug in — behind a clean, native-feeling interface
+> (light/dark, live progress, downloads). The easiest way to use this day-to-day. The quick start
+> below runs Krea 2 Turbo on its own.
+
 ---
 
 ## ⚡ Quick start (beginners — copy & paste)
