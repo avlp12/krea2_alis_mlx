@@ -1,0 +1,25 @@
+Krea-2-Turbo · Alis MLX — quantization validation (validation/validate_quant.py)
+Per-step velocity cosine vs full-precision bf16 on a FIXED trajectory (isolates
+quantization error from benign ODE divergence). 12 prompts × 8 steps = 96 samples
+per build. Generated on an Apple M3 Ultra. Reference (bf16) is itself cos=1.000000
+vs the PyTorch reference (see README verification table).
+
+[bf16] size=25.6GB
+[bf16-ref  ] size=25.6GB  fwd= 5763ms
+[8bit-bulk ] size=14.2GB  qlinears=224  fwd= 5973ms  vel_cos vs bf16: mean=0.99994 min=0.99959  (n=96)
+[4bit-bulk ] size= 8.2GB  qlinears=224  fwd= 5949ms  vel_cos vs bf16: mean=0.99760 min=0.98666  (n=96)
+[mixed-4/8 ] size= 9.8GB  qlinears=224  fwd= 5953ms  vel_cos vs bf16: mean=0.99824 min=0.98710  (n=96)
+
+Notes:
+- vel_cos mean/min are over the 96 (prompt,step) samples (12 diverse prompts:
+  animal/snow, urban/neon, portrait, landscape, food, sci-fi, painterly, bright
+  animal, dramatic figure, interior, macro, dense scene).
+- fwd = mean per-step transformer latency at 1024x1024 (3 timed calls).
+- latency is ~equal across bit-widths => quantization gives no speedup here
+  (generation is attention-bound; attention is not quantized).
+- An earlier 3-prompt (n=24) screen reported slightly higher figures (8-bit
+  0.99996/0.99988, mixed 0.99849/0.99229, 4-bit 0.99788/0.98852); the 12-prompt
+  set is more representative, especially for the worst-case min.
+
+NSFW safety classifier (validation/validate_nsfw.py): the pure-MLX ViT port matches
+the PyTorch (transformers) reference to max |Δ P(nsfw)| = 2e-7 across 4 test images.

@@ -63,10 +63,10 @@ you pick:
 
 | Build | Transformer | Quality | When to use |
 |---|---|---|---|
-| [**8-bit**](https://huggingface.co/avlp12/Krea-2-Turbo-Alis-MLX-8bit) *(default)* | 14.2 GB | near-lossless (vel-cos 0.99996) | best fidelity |
-| [**mixed-4/8**](https://huggingface.co/avlp12/Krea-2-Turbo-Alis-MLX-mixed-4-8) | 9.8 GB | near-lossless (0.99849) | smaller download |
+| [**8-bit**](https://huggingface.co/avlp12/Krea-2-Turbo-Alis-MLX-8bit) *(default)* | 14.2 GB | near-lossless (vel-cos 0.99994) | best fidelity |
+| [**mixed-4/8**](https://huggingface.co/avlp12/Krea-2-Turbo-Alis-MLX-mixed-4-8) | 9.8 GB | near-lossless (0.99824) | smaller download |
 
-<sub>*vel-cos = mean per-step velocity cosine vs the bf16 reference on a fixed trajectory, over 3 prompts × 8 steps (24 samples); reproduce with [`validation/validate_quant.py`](validation/validate_quant.py). Worst-case-min: 8-bit 0.99988, mixed-4/8 0.99229.*</sub>
+<sub>*vel-cos = mean per-step velocity cosine vs the bf16 reference on a fixed trajectory, over 12 prompts × 8 steps (96 samples); reproduce with [`validation/validate_quant.py`](validation/validate_quant.py). Worst-case-min: 8-bit 0.99959, mixed-4/8 0.98710.*</sub>
 
 > **What about bf16?** There's **no separate bf16 build** — `--precision bf16` runs **Krea's
 > original weights** (`turbo.safetensors`, ~24 GB) through this *same* MLX code, pulled from
