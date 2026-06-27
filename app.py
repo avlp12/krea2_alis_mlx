@@ -30,9 +30,13 @@ def _pipe(precision):
     global _PIPE, _PIPE_PREC
     if _PIPE is None or _PIPE_PREC != precision:
         prec, path = resolve_weights(HERE, precision=precision, download=True)
-        # free the previous build first — two 12.9B transformers won't fit in unified memory
+        # free the previous build first — two 12.9B transformers won't fit in unified memory.
+        # gc.collect() drops the Python refs; mx.clear_cache() returns MLX's freed Metal buffers
+        # (cached by default) so they don't stack with the incoming build's allocation.
         _PIPE, _PIPE_PREC = None, None
         gc.collect()
+        import mlx.core as mx
+        mx.clear_cache()
         _PIPE = Krea2Pipeline(path, precision=prec, base_dir=os.environ.get("KREA2_BASE_DIR"))
         _PIPE_PREC = prec
     return _PIPE

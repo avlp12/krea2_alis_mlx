@@ -48,24 +48,37 @@ def _http_download(repo: str, filename: str, dest_root: str) -> str:
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     tmp = dest + ".part"
     pos = os.path.getsize(tmp) if os.path.exists(tmp) else 0  # resume a partial download
+    if total and pos == total:  # .part already holds the whole file (died before the rename) -> finalize
+        os.replace(tmp, dest)    # (avoids re-requesting Range: bytes={total}- which the CDN answers 416)
+        return dest
+    if total and pos > total:   # stale/corrupt leftover .part (wrong or changed remote) -> restart clean
+        os.remove(tmp)
+        pos = 0
     headers = {"Range": f"bytes={pos}-"} if pos else {}
     with requests.get(url, headers=headers, stream=True, timeout=(30, 120), allow_redirects=True) as r:
-        r.raise_for_status()
+        r.raise_for_status()  # 4xx/5xx (gated repo, missing file) surface here, not as a resume hint
         resume = bool(pos) and r.status_code == 206  # 206 => server honored the range
         pos = pos if resume else 0
-        total = total or (pos + int(r.headers.get("content-length") or 0))
+        total = total or (pos + int(r.headers.get("content-length") or 0))  # prefer GET's length
         done = pos
-        with open(tmp, "ab" if resume else "wb") as f:
-            for chunk in r.iter_content(4 << 20):
-                f.write(chunk)
-                done += len(chunk)
-                if total:
-                    print(f"\r  ↓ {filename}  {done // 1048576} / {total // 1048576} MB", end="", flush=True)
+        try:
+            with open(tmp, "ab" if resume else "wb") as f:
+                for chunk in r.iter_content(4 << 20):
+                    f.write(chunk)
+                    done += len(chunk)
+                    if total:
+                        print(f"\r  ↓ {filename}  {done // 1048576} / {total // 1048576} MB", end="", flush=True)
+        except requests.exceptions.RequestException as e:
+            # a mid-stream drop (incl. a truncated chunked transfer) lands here; .part is kept for resume
+            raise OSError(f"Download of {filename} interrupted; re-run to resume "
+                          "(the partial file is kept).") from e
     if total:
         print()
-    # only commit a complete file; keep the .part on a short read so the next run resumes it
-    if total and done != total:
-        raise IOError(f"Incomplete download of {filename}: got {done} of {total} bytes. "
+    # Commit only a verified-complete file. When the length is known we size-check; for a length-less
+    # (chunked) transfer requests raises above on a short read, so a clean loop here means complete —
+    # but never commit an empty result (an immediate disconnect that produced no bytes).
+    if (total and done != total) or done == 0:
+        raise OSError(f"Incomplete download of {filename}: got {done} of {total or '?'} bytes. "
                       "Re-run to resume (the partial file is kept).")
     os.replace(tmp, dest)
     return dest
@@ -165,7 +178,11 @@ class Krea2Pipeline:
     def generate(self, prompt, *, width=1024, height=1024, steps=8, seed=0, num_images=1, step_callback=None):
         if not isinstance(prompt, str) or not prompt.strip():
             raise ValueError("prompt must be a non-empty string.")
-        width, height, steps, num_images = int(width), int(height), int(steps), int(num_images)
+        try:  # uniform ValueError for None / non-numeric / inf / nan (not TypeError / OverflowError)
+            width, height, steps, num_images, seed = (
+                int(width), int(height), int(steps), int(num_images), int(seed))
+        except (TypeError, ValueError, OverflowError):
+            raise ValueError("width, height, steps, num_images, seed must be integers.") from None
         # the VAE downsamples ×8 and the DiT patchifies ×2 → dims must be multiples of 16
         for name, v in (("width", width), ("height", height)):
             if v < 256 or v > 2048 or v % 16:
@@ -174,6 +191,8 @@ class Krea2Pipeline:
             raise ValueError(f"steps must be in [1, 50], got {steps}.")
         if not 1 <= num_images <= 8:
             raise ValueError(f"num_images must be in [1, 8], got {num_images}.")
+        if not 0 <= seed < 2**64:  # mx.random.seed wants a non-negative uint64 (else a bare TypeError)
+            raise ValueError(f"seed must be in [0, 2^64), got {seed}.")
         dec = sample(self.transformer, self.vae, self.encoder, [prompt] * num_images,
                      width=width, height=height, steps=steps, guidance=0.0, seed=seed,
                      step_callback=step_callback)

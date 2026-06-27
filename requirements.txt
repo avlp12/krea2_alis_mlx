@@ -1,7 +1,7 @@
 # Inference (text-to-image on Apple silicon)
 mlx>=0.31,<0.32
 mflux>=0.18,<0.19           # reused for the Qwen-Image VAE + weight loaders
-transformers>=5.0,<6        # Qwen3-VL-4B tokenizer / encoder
+transformers>=5.0,<6        # Qwen3-VL-4B tokenizer / encoder (its support landed in 5.0)
 huggingface_hub>=0.26,<1
 requests>=2.28,<3
 numpy>=1.24,<3

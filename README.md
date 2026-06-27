@@ -66,6 +66,8 @@ you pick:
 | [**8-bit**](https://huggingface.co/avlp12/Krea-2-Turbo-Alis-MLX-8bit) *(default)* | 14.2 GB | near-lossless (vel-cos 0.99996) | best fidelity |
 | [**mixed-4/8**](https://huggingface.co/avlp12/Krea-2-Turbo-Alis-MLX-mixed-4-8) | 9.8 GB | near-lossless (0.99849) | smaller download |
 
+<sub>*vel-cos = mean per-step velocity cosine vs the bf16 reference on a fixed trajectory, over 3 prompts × 8 steps (24 samples); reproduce with [`validation/validate_quant.py`](validation/validate_quant.py). Worst-case-min: 8-bit 0.99988, mixed-4/8 0.99229.*</sub>
+
 > **What about bf16?** There's **no separate bf16 build** — `--precision bf16` runs **Krea's
 > original weights** (`turbo.safetensors`, ~24 GB) through this *same* MLX code, pulled from
 > [`krea/Krea-2-Turbo`](https://huggingface.co/krea/Krea-2-Turbo). It's the full-precision
@@ -124,13 +126,23 @@ is the verification harness; `docs/PORT_PLAN.md` is the build journal.
   only shrinks the download.
 - **`Address already in use` (port 7860)** → another app has the port. Run on another one:
   `GRADIO_SERVER_PORT=7861 python3 app.py`.
+- **Reach the UI from another device on your network** → the server binds to `127.0.0.1`
+  (your Mac only) by default. To expose it on your LAN: `KREA2_HOST=0.0.0.0 python3 app.py`
+  — only do this on networks you trust (anyone on the network can then generate images).
 - **Out of memory / very slow + swapping** → you likely have < 24 GB RAM; use `--width/--height 512`
   or the smaller `mixed-4/8` build.
+- **Verify your weights downloaded intact** → check the SHA-256 of the transformer file:
+  ```bash
+  shasum -a 256 transformer_8bit.safetensors       # b10f33f0dcd91772990e7cecfc8003ba4d3f1ba27f03010b6d17a1f490f80a6c  (14,244,836,620 bytes)
+  shasum -a 256 transformer_mixed_4_8.safetensors  # 985d60722b339c3cd9df16a173f0cb504ae93d81ce9fbe2c3ab158cf5b60a5fb  (9,840,816,670 bytes)
+  ```
 
 ## 🛡️ Safety &amp; responsible use
 
 An NSFW content filter (**[Falconsai/nsfw_image_detection](https://huggingface.co/Falconsai/nsfw_image_detection)**,
 one of the classifiers named in the license) runs **by default** and **redacts** explicit outputs.
+It's reimplemented in **pure MLX** (`krea2/nsfw_mlx.py`, validated bit-for-bit against the PyTorch
+reference — max |Δ| 2e-7), so it needs **no PyTorch** and works out of the box on a clean install.
 It's tuned not to flag ordinary photos (e.g. swimwear). Turn it off with the web-UI checkbox,
 `--no-safety` (CLI), or `KREA2_DISABLE_SAFETY=1`; adjust the cutoff with `KREA2_SAFETY_THRESHOLD`
 (default 0.85).

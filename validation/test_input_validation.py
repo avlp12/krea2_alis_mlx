@@ -22,6 +22,8 @@ REJECT = [   # (prompt, kwargs) that must raise ValueError
     ("ok", {"steps": 99}),          # steps above 50
     ("ok", {"num_images": 0}),      # too few
     ("ok", {"num_images": 9}),      # too many
+    ("ok", {"seed": -1}),           # negative seed (mx.random.seed wants non-negative)
+    ("ok", {"width": None}),        # non-numeric → uniform ValueError, not TypeError
 ]
 
 

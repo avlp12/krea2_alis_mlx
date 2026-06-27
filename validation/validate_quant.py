@@ -25,7 +25,23 @@ REPO = "weights/Krea-2-Turbo"
 CKPT = f"{REPO}/turbo.safetensors"
 W = H = 1024
 STEPS = 8
-PROMPTS = ["a fox in the snow", "a neon city street at night, rain", "a close-up portrait of an old fisherman"]
+# 12-prompt diverse set (animal/snow, urban/neon, portrait, landscape, food, sci-fi, painterly,
+# bright animal, dramatic figure, interior, macro, dense scene) — stresses quant across content types.
+# First 3 are the original set, kept for continuity / determinism cross-check.
+PROMPTS = [
+    "a fox in the snow",
+    "a neon city street at night, rain",
+    "a close-up portrait of an old fisherman",
+    "a serene mountain lake at sunrise, mist over the water",
+    "a bowl of ramen with steam rising, top-down food photography",
+    "a futuristic spaceship interior, intricate machinery and glowing panels",
+    "a watercolor painting of cherry blossoms, soft pastel tones",
+    "a golden retriever puppy running through a sunlit meadow",
+    "an astronaut standing on a red martian desert, dramatic lighting",
+    "a vintage bookstore interior, warm light, shelves of old books",
+    "a macro shot of a dewdrop on a green leaf, sharp detail",
+    "a bustling Tokyo crosswalk at dusk, crowds and neon signage",
+]
 
 
 class _VaeDef:
